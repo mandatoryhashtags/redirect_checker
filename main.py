@@ -8,9 +8,11 @@ from http.client import HTTPConnection
 def write_to_file(data, file_path):
     with open(file_path, 'a') as file:
         file.write(data)
+        file.write('\n')
 
 
 def main():
+    global last_url
     parser = argparse.ArgumentParser(description='URL Checker')
     parser.add_argument(
         'debug', help='Enable debug mode (0 for No, 1 for Yes)', type=int)
@@ -35,6 +37,7 @@ def main():
     log.addHandler(ch)
 
     start_time = datetime.now()
+
     print(f'{start_time} Starting Now')
 
     with open(args.read_file, 'r') as url_entries:
@@ -55,6 +58,7 @@ def main():
 
         for url in url_entries:
             url = url.strip()  # Remove newline characters
+            last_url = url
             session = requests.Session()
             r = session.get(url, timeout=60, headers=headers,
                             allow_redirects=True)
@@ -70,5 +74,14 @@ def main():
     print(datetime.now() - start_time)
 
 
+def exit_gracefully():
+    print(f'The last URL touched was {last_url}')
+
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        exit_gracefully()
